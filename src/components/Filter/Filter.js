@@ -19,6 +19,8 @@ const Filter = ({ value, onChange, resetFiler }) => {
     )
 }
 
+export default Filter;
+
 Filter.protoTypes = {
     value: PropTypes.string.isRequired,
     onChange: PropTypes.func,
@@ -26,4 +28,4 @@ Filter.protoTypes = {
 
 }
 
-export default Filter;
+

@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import { useEffect, useState } from "react";
 import shortid from 'shortid';
 
 import Form from './components/Form';
@@ -6,93 +6,68 @@ import Contacts from './components/Contacts';
 import Filter from "./components/Filter";
 import styles from './App.module.css';
 
+const arrContacts = [
+  { id: 'id-1', name: 'Rosie Simpson', number: '459-12-56' },
+  { id: 'id-2', name: 'Hermione Kline', number: '443-89-12' },
+  { id: 'id-3', name: 'Eden Clements', number: '645-17-79' },
+  { id: 'id-4', name: 'Annie Copeland', number: '227-91-26' },
+];
 
-class App extends Component {
-  state = {
-    contacts: [
-      { id: 'id-1', name: 'Rosie Simpson', number: '459-12-56' },
-      { id: 'id-2', name: 'Hermione Kline', number: '443-89-12' },
-      { id: 'id-3', name: 'Eden Clements', number: '645-17-79' },
-      { id: 'id-4', name: 'Annie Copeland', number: '227-91-26' },
-    ],
-    filter: ''
-  }
 
-  componentDidMount() {
-    const contacts = localStorage.getItem('contacts');
-    const parsedContacts = JSON.parse(contacts);
-    if (parsedContacts) {
-      this.setState({ contacts: parsedContacts });
-      console.log(contacts)
-    }
-  }
+export default function App() {
+  const [contacts, setContacts] = useState(JSON.parse(window.localStorage.getItem('contacts')) ?? arrContacts);
 
-  componentDidUpdate(prevState) {
-    // console.log(prevState.contacts);
-    // console.log(this.state.contacts)
-    if (this.state.contacts !== prevState.contacts) {
-      localStorage.setItem('contacts', JSON.stringify(this.state.contacts));
-    }
-  }
+  const [filterName, setFilterName] = useState('')
 
-  addNewContact = data => {
-    // console.log(this.state.contacts)
+  useEffect(() => {
+    console.log('useEffect');
+    window.localStorage.setItem("contacts", JSON.stringify(contacts))
+  }, [contacts])
+
+  const addNewContact = (name, number) => {
     const contact = {
       id: shortid.generate(),
-      name: data.name,
-      number: data.number
+      name: name,
+      number: number
     }
-
-    this.setState(prevState => ({
-      contacts: [contact, ...prevState.contacts]
-    }))
-    // console.log(this.state)
+    setContacts(prevState => [...prevState, contact])
   }
 
-  deleteContact = (contactId) => {
-    this.setState(prevState => ({
-      contacts: prevState.contacts.filter(contact => contact.id !== contactId),
-    }))
+  const deleteContact = (contactId) => {
+    setContacts(prevState =>
+      prevState.filter(contact => contact.id !== contactId),
+    )
   }
 
-  getFilterName = event => {
-    this.setState({
-      filter: event.currentTarget.value
-    });
-    // console.log(this.state.filter)
+  const getFilterName = event => {
+    setFilterName(event.currentTarget.value);
   }
 
-  visibleContacts = () => {
-    const { filter, contacts } = this.state;
-    return contacts.filter((contact) =>
-      contact.name.toLowerCase().includes(filter.toLowerCase())
+  const resetFiler = () => {
+    setFilterName('');
+  }
+
+  const visibleContacts = () => {
+    return contacts.filter(contact =>
+      contact.name.toLowerCase().includes(filterName.toLowerCase())
     );
   };
 
-  resetFiler = () => {
-    this.setState({ filter: '' });
-  }
 
+  return (
+    <>
+      <div className={styles.container}>
+        <div className={styles.phonebook}>
+          <h1 className={styles.title}>Phonebook</h1>
+          <Form contacts={contacts} addNewContact={addNewContact} />
 
+          <h2 className={styles.titleContacts}>Contacts</h2>
+          <Filter value={filterName} onChange={getFilterName} resetFiler={resetFiler} />
+          <Contacts contacts={visibleContacts()} onDeleteContact={deleteContact} />
 
-  render() {
-    const { filter, contacts } = this.state;
-    const peapleInContact = this.visibleContacts();
-
-    return (
-      <>
-        <div className={styles.container}>
-          <div className={styles.phonebook}>
-            <h1 className={styles.title}>Phonebook</h1>
-            <Form contacts={contacts} addNewContact={this.addNewContact} />
-            <h2 className={styles.titleContacts}>Contacts</h2>
-            <Filter value={filter} onChange={this.getFilterName} resetFiler={this.resetFiler} />
-            <Contacts contacts={peapleInContact} onDeleteContact={this.deleteContact} />
-          </div>
         </div>
-      </>
-    )
-  }
-}
+      </div>
+    </>
 
-export default App;
+  )
+}
